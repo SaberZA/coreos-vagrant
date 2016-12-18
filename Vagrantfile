@@ -16,11 +16,11 @@ $image_version = "current"
 $enable_serial_logging = false
 $share_home = false
 $vm_gui = false
-$vm_memory = 1024
+$vm_memory = 4096
 $vm_cpus = 1
 $vb_cpuexecutioncap = 100
 $shared_folders = {}
-$forwarded_ports = {}
+$forwarded_ports = [ ["1433", "1433"]]
 
 # Attempt to apply the deprecated environment variable NUM_INSTANCES to
 # $num_instances while allowing config.rb to override it
@@ -75,6 +75,13 @@ Vagrant.configure("2") do |config|
     config.vbguest.auto_update = false
   end
 
+  config.vm.provision "docker" do |d|
+    d.pull_images "microsoft/mssql-server-linux"
+
+    d.run "microsoft/mssql-server-linux",      
+      args: "-e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 1433:1433 -d"
+  end
+
   (1..$num_instances).each do |i|
     config.vm.define vm_name = "%s-%02d" % [$instance_name_prefix, i] do |config|
       config.vm.hostname = vm_name
@@ -104,6 +111,8 @@ Vagrant.configure("2") do |config|
       if $expose_docker_tcp
         config.vm.network "forwarded_port", guest: 2375, host: ($expose_docker_tcp + i - 1), host_ip: "127.0.0.1", auto_correct: true
       end
+
+
 
       $forwarded_ports.each do |guest, host|
         config.vm.network "forwarded_port", guest: guest, host: host, auto_correct: true
