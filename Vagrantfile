@@ -59,6 +59,7 @@ def vm_cpus
 end
 
 Vagrant.configure("2") do |config|
+  config.vm.box_download_insecure = true
   # always use Vagrants insecure key
   config.ssh.insert_key = false
   # forward ssh agent to easily ssh into the different machines
